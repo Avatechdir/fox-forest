@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Лиса в лесу</title>
+  <link rel="icon" href="data:," />
+  <style>
+    /* Сдержанный природный стиль: тёмная хвоя, кора, охра; шрифт с кириллицей — PT Sans / PT Serif
+       (есть в macOS), иначе системный. Всё в CSS-пикселях: на ретине крупно и чётко само. */
+    :root {
+      --ink: #f2ecdc; --ink-dim: #c9bfa6; --panel: rgba(22, 26, 18, 0.72); --panel-solid: #1f241a; --line: rgba(242, 236, 220, 0.16);
+      --accent: #d8873a; --accent-dim: #8f5a2a; --good: #9fbf6a; --bad: #e08a72;
+      --sans: 'PT Sans', system-ui, -apple-system, 'Segoe UI', sans-serif; --serif: 'PT Serif', Georgia, serif;
+    }
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #c9d8e2; font-family: var(--sans); color: var(--ink); }
+    canvas { display: block; }
+    button { font: inherit; color: inherit; }
+    [hidden] { display: none !important; }
+
+    #loading {
+      position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; z-index: 30;
+      background: radial-gradient(ellipse at 50% 60%, #2e3b26 0%, #141a12 75%); transition: opacity 0.5s;
+    }
+    #loading.done { opacity: 0; pointer-events: none; }
+    #loading h1, .title { margin: 0; font-family: var(--serif); font-weight: 700; font-size: 44px; letter-spacing: 0.01em; }
+    #loading p { margin: 0; font-size: 17px; color: var(--ink-dim); min-height: 1.4em; }
+    #loading .bar { width: 240px; height: 3px; border-radius: 2px; background: #3a4632; overflow: hidden; }
+    #loading .bar::after { content: ''; display: block; width: 40%; height: 100%; background: var(--accent); animation: run 1.2s ease-in-out infinite; }
+    #loading.error .bar { display: none; }
+    #loading.error p { color: var(--bad); }
+    @keyframes run { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+
+    /* ---- экран игры (ИН-1) ---- */
+    #hud { position: fixed; inset: 0; pointer-events: none; }
+    .card { background: var(--panel); border-radius: 12px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45); }
+    #scales { position: absolute; left: 22px; bottom: 22px; padding: 14px 16px 15px; display: grid; gap: 10px; }
+    .bar { display: grid; grid-template-columns: 112px 230px 36px; align-items: center; gap: 10px; font-size: 17px; }
+    .bar .track { height: 10px; border-radius: 5px; background: rgba(255, 255, 255, 0.14); overflow: hidden; }
+    .bar .fill { display: block; height: 100%; transform-origin: left; border-radius: 5px; transition: transform 0.25s linear; }
+    .bar .num { font-size: 15px; color: var(--ink-dim); text-align: right; font-variant-numeric: tabular-nums; }
+    .bar.health .fill { background: #c4574b; }
+    .bar.health.poison .fill { background: #7d9a3a; }
+    .bar.satiety .fill { background: #cf9a42; }
+    .bar.thirst .fill { background: #5a95bf; }
+    .bar.stamina .fill { background: var(--good); }
+    .bar.low .label, .bar.low .track { animation: blink 0.9s ease-in-out infinite; }
+    .bar.low .label { color: #ffd2a8; }
+    @keyframes blink { 50% { opacity: 0.3; } }
+    #status { position: absolute; left: 22px; top: 20px; padding: 12px 16px 14px; width: 380px; display: grid; gap: 8px; }
+    #status .row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+    #status .lvl { font-family: var(--serif); font-size: 22px; font-weight: 700; }
+    #status .time { font-size: 15px; color: var(--ink-dim); }
+    #status .xp { height: 7px; border-radius: 4px; background: rgba(255, 255, 255, 0.14); overflow: hidden; }
+    #status .xp span { display: block; height: 100%; background: var(--accent); transform-origin: left; }
+    #status .xpnum { font-size: 14px; color: var(--ink-dim); font-variant-numeric: tabular-nums; }
+    #status .quest { border-top: 1px solid var(--line); padding-top: 8px; font-size: 16px; line-height: 1.3; }
+    #status .quest small { display: block; color: var(--ink-dim); font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 2px; }
+    #prompt { position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); padding: 8px 16px; font-size: 17px; white-space: nowrap; pointer-events: none; }
+    #hint { position: fixed; left: 50%; bottom: 40px; transform: translateX(-50%); padding: 8px 16px; font-size: 15px; color: var(--ink-dim); pointer-events: none; white-space: nowrap; }
+    #messages { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); display: grid; gap: 8px; justify-items: center; pointer-events: none; }
+    .msg { padding: 8px 20px; border-radius: 20px; font-size: 17px; transition: opacity 0.8s; }
+    .msg.big { font-family: var(--serif); font-size: 24px; padding: 10px 26px; background: rgba(60, 40, 18, 0.82); }
+    .msg.out { opacity: 0; }
+    #fade { position: fixed; inset: 0; background: #070806; opacity: 0; pointer-events: none; transition: opacity 1.2s; display: flex; align-items: center; justify-content: center; color: var(--ink-dim); font-family: var(--serif); font-size: 22px; z-index: 15; }
+    #fade.on { opacity: 1; }
+    /* полосы здоровья врагов (ОХ-6) */
+    .enemy { position: absolute; left: 0; top: 0; display: grid; gap: 3px; justify-items: center; font-size: 14px; text-shadow: 0 1px 2px #000; white-space: nowrap; }
+    .enemy .track { width: 90px; height: 6px; border-radius: 3px; background: rgba(0, 0, 0, 0.45); overflow: hidden; }
+    .enemy .fill { display: block; height: 100%; background: #e0b04a; transform-origin: left; }
+    .enemy.danger .name { color: #ff8a70; font-weight: 700; }
+    .enemy.danger .fill { background: #d8452e; }
+    #fps { position: fixed; top: 10px; right: 10px; padding: 4px 8px; border-radius: 4px; background: rgba(0, 0, 0, 0.6); color: #9f9; font: 13px ui-monospace, Menlo, monospace; pointer-events: none; z-index: 40; }
+
+    /* ---- окна: главное меню, пауза, меню норы, журнал ---- */
+    .screen { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; background: rgba(10, 12, 8, 0.55); }
+    .screen.main { background: radial-gradient(ellipse at 50% 55%, rgba(30, 40, 24, 0.55) 0%, rgba(10, 12, 8, 0.88) 80%); }
+    .window { background: var(--panel-solid); border: 1px solid var(--line); border-radius: 16px; padding: 26px 30px 28px; min-width: 420px; max-width: 760px; max-height: 84vh; overflow: auto; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); }
+    .window h2 { margin: 0 0 4px; font-family: var(--serif); font-size: 28px; }
+    .window .sub { color: var(--ink-dim); font-size: 16px; margin: 0 0 18px; }
+    .stack { display: grid; gap: 12px; }
+    .btn { display: block; width: 100%; padding: 12px 18px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.05); font-size: 18px; text-align: left; cursor: pointer; }
+    .btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.1); }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #1c1309; font-weight: 700; }
+    .btn.primary:hover:not(:disabled) { background: #e59a50; }
+    .btn:disabled { opacity: 0.45; cursor: default; }
+    .btn.small { display: inline-block; width: auto; padding: 7px 14px; font-size: 16px; }
+    .main .window { text-align: center; min-width: 380px; }
+    .main .btn { text-align: center; }
+    .tabs { display: flex; gap: 4px; margin: 0 0 16px; border-bottom: 1px solid var(--line); }
+    .tab { padding: 9px 14px; border: 0; background: none; font-size: 17px; color: var(--ink-dim); cursor: pointer; border-bottom: 2px solid transparent; }
+    .tab.on { color: var(--ink); border-bottom-color: var(--accent); }
+    .item { display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
+    .item:last-child { border-bottom: 0; }
+    .item b { font-size: 18px; }
+    .item .meta { color: var(--ink-dim); font-size: 15px; }
+    .item .why { color: var(--bad); font-size: 15px; }
+    .res { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 18px; margin: 0 0 14px; font-size: 16px; }
+    .res span { color: var(--ink-dim); }
+    .empty { color: var(--ink-dim); font-size: 16px; padding: 18px 0; text-align: center; }
+    .niches { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .niche { border: 1px dashed var(--line); border-radius: 10px; padding: 14px; color: var(--ink-dim); text-align: center; font-size: 15px; }
+    .slider { display: grid; grid-template-columns: 130px 1fr 40px; align-items: center; gap: 12px; font-size: 16px; }
+    .slider input { accent-color: var(--accent); }
+    .seg { display: flex; gap: 6px; }
+    .seg .btn { text-align: center; }
+    .seg .btn.on { border-color: var(--accent); background: rgba(216, 135, 58, 0.18); }
+    .quests { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+    .quests li { padding: 9px 0; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 16px; font-size: 17px; }
+    .quests li.done { color: var(--ink-dim); text-decoration: line-through; text-decoration-color: rgba(242, 236, 220, 0.35); }
+    .quests li.later { color: rgba(242, 236, 220, 0.35); }
+    .quests li.current { color: var(--ink); font-weight: 700; }
+    .quests li.sec { border-bottom: 0; padding: 14px 0 2px; color: var(--accent); font-size: 14px; letter-spacing: .06em; text-transform: uppercase; }
+    .quests li i { color: var(--ink-dim); font-style: normal; font-weight: 400; }
+    .niche.have { border-style: solid; border-color: var(--accent); color: var(--ink); }
+    .niche .bonus { color: var(--accent); font-size: 14px; }
+    .keys { color: var(--ink-dim); font-size: 14px; margin-top: 16px; }
+    /* сенсорное управление (ui/touch.js) */
+    body.touch, body.touch canvas { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+    #touch { position: fixed; inset: 0; z-index: 12; pointer-events: none; }
+    #touch[hidden], #touch.menu { display: none; }
+    #touch .t-stick-zone { position: absolute; left: 0; top: 18%; width: 45%; bottom: 0; pointer-events: auto; touch-action: none; }
+    #touch .t-look { position: absolute; left: 45%; right: 0; top: 18%; bottom: 0; pointer-events: auto; touch-action: none; }
+    #touch .t-stick { position: absolute; left: 600px; top: calc(100% - 200px); width: 150px; height: 150px; margin: -75px 0 0 -75px; border-radius: 50%; border: 2px solid rgba(242, 236, 220, 0.35); background: rgba(22, 26, 18, 0.25); opacity: 0.55; }
+    #touch .t-stick.on { opacity: 1; }
+    #touch .t-knob { position: absolute; left: 45px; top: 45px; width: 60px; height: 60px; border-radius: 50%; background: rgba(242, 236, 220, 0.75); }
+    #touch .t-top { position: absolute; top: 16px; right: 16px; display: flex; gap: 10px; pointer-events: auto; }
+    #touch .t-icon { min-width: 120px; height: 64px; border-radius: 16px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font-size: 20px; }
+    #touch .t-buttons { position: absolute; right: 28px; bottom: 28px; display: grid; grid-template-columns: repeat(2, 160px); gap: 16px; pointer-events: auto; }
+    #touch .t-btn { height: 112px; border-radius: 22px; border: 2px solid rgba(242, 236, 220, 0.3); background: rgba(22, 26, 18, 0.62); color: var(--ink); font-size: 19px; touch-action: none; }
+    #touch .t-btn.down { background: rgba(216, 135, 58, 0.55); }
+    #touch .t-btn.on { border-color: var(--accent); background: rgba(216, 135, 58, 0.35); }
+    #touch .t-e { grid-column: 1 / 3; height: 84px; font-size: 18px; padding: 0 12px; }
+    #touch .t-e.idle { opacity: 0.5; }
+    #touch .t-attack { background: rgba(120, 50, 30, 0.6); }
+    body.touch #prompt { display: none; }
+    body.touch #fps { right: auto; left: 50%; transform: translateX(-50%); }
+    body.touch .btn { min-height: 52px; font-size: 19px; }
+    body.touch #window { max-height: 92vh; overflow-y: auto; }
+    #rotate { display: none; }
+    @media (orientation: portrait) { body.tablet #rotate { display: flex; position: fixed; inset: 0; z-index: 40; background: #0b0d09; color: var(--ink); align-items: center; justify-content: center; font-size: 28px; text-align: center; padding: 40px; } }
+    .keys-table { width: 100%; border-collapse: collapse; font-size: 16px; }
+    .keys-table td { padding: 6px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+    .keys-table td:first-child { width: 42%; padding-right: 16px; color: var(--ink); }
+    .keys-table td:last-child { color: var(--ink-dim); }
+    .howto { margin: 0 0 12px; padding-left: 20px; font-size: 16px; color: var(--ink-dim); line-height: 1.45; }
+    .howto li { margin: 6px 0; }
+    #credits { position: fixed; inset: 0; z-index: 30; background: rgba(8, 10, 8, 0.94); display: flex; justify-content: center; }
+    #credits[hidden] { display: none; }
+    #credits .roll { width: min(640px, 100% - 32px); overflow-y: auto; padding: 12vh 0 10vh; text-align: center; color: var(--ink); animation: credits-in 1.2s ease-out; }
+    #credits h1 { font-size: 46px; margin: 0 0 12px; }
+    #credits h2 { font-size: 26px; margin: 48px 0 8px; color: var(--accent); }
+    #credits h3 { font-size: 15px; margin: 28px 0 8px; color: var(--ink-dim); letter-spacing: .08em; text-transform: uppercase; }
+    #credits p { margin: 6px 0; font-size: 17px; display: flex; justify-content: space-between; gap: 16px; text-align: left; }
+    #credits p span { color: var(--ink-dim); }
+    #credits p.lead { display: block; text-align: center; font-size: 19px; margin: 28px 0; }
+    #credits .btn { margin-top: 24px; }
+    @keyframes credits-in { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+  </style>
+  <script type="module" crossorigin src="/fox-forest/tablet/assets/game-VFvEn3a0.js"></script>
+  <link rel="modulepreload" crossorigin href="/fox-forest/tablet/assets/viper-CtlkSe3S.js">
+</head>
+<body>
+  <div id="loading">
+    <h1>Лиса в лесу</h1>
+    <div class="bar"></div>
+    <p id="loading-status">Загрузка…</p>
+  </div>
+  <div id="hud" hidden>
+    <div id="status" class="card">
+      <div class="row"><span class="lvl">Уровень 1</span><span class="time"></span></div>
+      <div class="xp"><span></span></div>
+      <div class="xpnum"></div>
+      <div class="quest"><small>Задание</small><span class="qtext"></span></div>
+    </div>
+    <div id="scales" class="card"></div>
+  </div>
+  <div id="hint" class="card" hidden>Щёлкните по картинке, чтобы управлять камерой мышью · Esc — пауза</div>
+  <div id="prompt" class="card" hidden></div>
+  <div id="messages"></div>
+  <div id="rotate">Поверните планшет горизонтально</div>
+  <div id="fade">Лиса без сил…</div>
+  <div id="screen" class="screen" hidden><div class="window" id="window"></div></div>
+  <div id="fps" hidden>— FPS</div>
+</body>
+</html>

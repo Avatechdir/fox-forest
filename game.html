@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Лиса в лесу</title>
   <link rel="icon" href="data:," />
   <style>
@@ -115,6 +115,30 @@
     .niche.have { border-style: solid; border-color: var(--accent); color: var(--ink); }
     .niche .bonus { color: var(--accent); font-size: 14px; }
     .keys { color: var(--ink-dim); font-size: 14px; margin-top: 16px; }
+    /* сенсорное управление (ui/touch.js) */
+    body.touch, body.touch canvas { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+    #touch { position: fixed; inset: 0; z-index: 12; pointer-events: none; }
+    #touch[hidden], #touch.menu { display: none; }
+    #touch .t-stick-zone { position: absolute; left: 0; top: 18%; width: 45%; bottom: 0; pointer-events: auto; touch-action: none; }
+    #touch .t-look { position: absolute; left: 45%; right: 0; top: 18%; bottom: 0; pointer-events: auto; touch-action: none; }
+    #touch .t-stick { position: absolute; left: 600px; top: calc(100% - 200px); width: 150px; height: 150px; margin: -75px 0 0 -75px; border-radius: 50%; border: 2px solid rgba(242, 236, 220, 0.35); background: rgba(22, 26, 18, 0.25); opacity: 0.55; }
+    #touch .t-stick.on { opacity: 1; }
+    #touch .t-knob { position: absolute; left: 45px; top: 45px; width: 60px; height: 60px; border-radius: 50%; background: rgba(242, 236, 220, 0.75); }
+    #touch .t-top { position: absolute; top: 16px; right: 16px; display: flex; gap: 10px; pointer-events: auto; }
+    #touch .t-icon { min-width: 120px; height: 64px; border-radius: 16px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font-size: 20px; }
+    #touch .t-buttons { position: absolute; right: 28px; bottom: 28px; display: grid; grid-template-columns: repeat(2, 160px); gap: 16px; pointer-events: auto; }
+    #touch .t-btn { height: 112px; border-radius: 22px; border: 2px solid rgba(242, 236, 220, 0.3); background: rgba(22, 26, 18, 0.62); color: var(--ink); font-size: 19px; touch-action: none; }
+    #touch .t-btn.down { background: rgba(216, 135, 58, 0.55); }
+    #touch .t-btn.on { border-color: var(--accent); background: rgba(216, 135, 58, 0.35); }
+    #touch .t-e { grid-column: 1 / 3; height: 84px; font-size: 18px; padding: 0 12px; }
+    #touch .t-e.idle { opacity: 0.5; }
+    #touch .t-attack { background: rgba(120, 50, 30, 0.6); }
+    body.touch #prompt { display: none; }
+    body.touch #fps { right: auto; left: 50%; transform: translateX(-50%); }
+    body.touch .btn { min-height: 52px; font-size: 19px; }
+    body.touch #window { max-height: 92vh; overflow-y: auto; }
+    #rotate { display: none; }
+    @media (orientation: portrait) { body.tablet #rotate { display: flex; position: fixed; inset: 0; z-index: 40; background: #0b0d09; color: var(--ink); align-items: center; justify-content: center; font-size: 28px; text-align: center; padding: 40px; } }
     .keys-table { width: 100%; border-collapse: collapse; font-size: 16px; }
     .keys-table td { padding: 6px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
     .keys-table td:first-child { width: 42%; padding-right: 16px; color: var(--ink); }
@@ -133,8 +157,8 @@
     #credits .btn { margin-top: 24px; }
     @keyframes credits-in { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
   </style>
-  <script type="module" crossorigin src="/fox-forest/assets/game-D0IJyTe_.js"></script>
-  <link rel="modulepreload" crossorigin href="/fox-forest/assets/viper-cJWEjFpG.js">
+  <script type="module" crossorigin src="/fox-forest/assets/game-Dchp_pD5.js"></script>
+  <link rel="modulepreload" crossorigin href="/fox-forest/assets/viper-DV0PaTJX.js">
 </head>
 <body>
   <div id="loading">
@@ -154,6 +178,7 @@
   <div id="hint" class="card" hidden>Щёлкните по картинке, чтобы управлять камерой мышью · Esc — пауза</div>
   <div id="prompt" class="card" hidden></div>
   <div id="messages"></div>
+  <div id="rotate">Поверните планшет горизонтально</div>
   <div id="fade">Лиса без сил…</div>
   <div id="screen" class="screen" hidden><div class="window" id="window"></div></div>
   <div id="fps" hidden>— FPS</div>
