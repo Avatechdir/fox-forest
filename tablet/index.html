@@ -209,7 +209,16 @@
     body.touch #prompt { display: none; }
     body.touch #fps { right: auto; left: 50%; transform: translateX(-50%); }
     body.touch .btn { min-height: 52px; font-size: 19px; }
-    body.touch #window { max-height: 92vh; overflow-y: auto; }
+    /* окно с полями целиком в экране (планшет ≈1000×600): высота и ширина — вместе с полями и рамкой */
+    body.touch #window { max-height: 92vh; overflow-y: auto; box-sizing: border-box; }
+    body.touch #window.wide { width: min(980px, 94vw); max-width: 94vw; }
+    /* кнопки внизу окна («Назад», действия) видны, даже если окно прокручивается — содержимое уходит под них */
+    /* (сенсорный экран; уходит и в нижнее поле окна — снизу под кнопками ничего не видно, лишнего места не добавляет) */
+    body.touch #window > .stack:last-child { position: sticky; bottom: -28px; padding-bottom: 28px; margin-bottom: -28px; background: var(--panel-solid); box-shadow: 0 -12px 12px var(--panel-solid); }
+    /* низкий экран (планшет ≈1000×600): кнопки карточки «Мои лисы» в ряд — 7 карточек помещаются без прокрутки (Я-1) */
+    @media (max-height: 700px) { .fox-btns { flex-direction: row; } .fox { min-height: 0; padding: 6px 10px; } }
+    /* низкий сенсорный экран: главное меню плотнее — кнопки и выбор языка помещаются без прокрутки */
+    @media (max-height: 700px) { body.touch .btn { min-height: 42px; padding-top: 8px; padding-bottom: 8px; } .main .stack { gap: 6px; } .main .title { font-size: 34px; } .main .keys { margin-top: 8px; } #window > .keys:last-child { margin-bottom: 0; } }
     #rotate { display: none; }
     @media (orientation: portrait) { body.tablet #rotate { display: flex; position: fixed; inset: 0; z-index: 40; background: #0b0d09; color: var(--ink); align-items: center; justify-content: center; font-size: 28px; text-align: center; padding: 40px; } }
     .keys-table { width: 100%; border-collapse: collapse; font-size: 16px; }
@@ -220,6 +229,8 @@
     .howto li { margin: 6px 0; }
     #credits { position: fixed; inset: 0; z-index: 30; background: rgba(8, 10, 8, 0.94); display: flex; justify-content: center; }
     #credits[hidden] { display: none; }
+    #credits .roll.menu { padding-bottom: 96px; -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 120px), transparent calc(100% - 72px)); mask-image: linear-gradient(to bottom, #000 calc(100% - 120px), transparent calc(100% - 72px)); }
+    #credits .btn.back { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); width: min(640px, 100% - 32px); margin: 0; } /* «Авторы» из меню: «Назад» видна всегда */
     #credits .roll { width: 100%; box-sizing: border-box; overflow-y: auto; padding: 12vh max(16px, calc((100% - 640px) / 2)) 10vh; text-align: center; color: var(--ink); animation: credits-in 1.2s ease-out; }
     #credits h1 { font-size: 46px; margin: 0 0 12px; }
     #credits h2 { font-size: 26px; margin: 48px 0 8px; color: var(--accent); }
@@ -234,7 +245,7 @@
     #credits .idea .names { font-family: var(--serif); font-size: 34px; line-height: 1.25; color: var(--ink); }
     @keyframes credits-in { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
   </style>
-  <script type="module" crossorigin src="/fox-forest/tablet/assets/game-BCJNpA9Y.js"></script>
+  <script type="module" crossorigin src="/fox-forest/tablet/assets/game-Cfxs2A6S.js"></script>
   <link rel="modulepreload" crossorigin href="/fox-forest/tablet/assets/viper-_68xton3.js">
 </head>
 <body>
