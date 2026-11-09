@@ -100,6 +100,33 @@
     .fox .meta { color: var(--ink-dim); font-size: 13.5px; }
     .fox-btns { display: flex; flex-direction: column; gap: 6px; } .fox-btns .btn.small { padding: 5px 12px; font-size: 14px; }
     @media (max-width: 760px) { .foxes { grid-template-columns: 1fr; } }
+    /* «Лисы леса — Рекорды» (docs/leaderboard-design.md, 2.5): окно — столбиком, прокручивается только список */
+    .window.board-win { display: flex; flex-direction: column; overflow: hidden; box-sizing: border-box; } /* ширина и высота — с полями: окно целиком в экране (З-1) */
+    .board { display: flex; flex-direction: column; min-height: 0; flex: 1; text-align: left; border: 1px solid var(--line); border-radius: 10px; }
+    .board-list { overflow-y: auto; min-height: 0; flex: 1; scrollbar-width: none; } /* своя полоса — .board-thumb */
+    /* полоса прокрутки списка — своя, видна всегда: системную браузер на планшете и при наложенных полосах прячет (menus.js, boardThumb) */
+    .board { position: relative; } .board-thumb { position: absolute; right: 2px; width: 6px; border-radius: 3px; background: rgba(242, 236, 220, 0.45); pointer-events: none; z-index: 1; }
+    body.touch #window.board-win { overflow: hidden; } /* прокручивается только список, «Обновить» / «Назад» — всегда на экране */
+    .brow { display: grid; grid-template-columns: 36px minmax(180px, 1fr) 32px 132px 116px 116px 100px 100px; gap: 8px; align-items: center; padding: 6px 10px; font-size: 14.5px; border-bottom: 1px solid var(--line); border-left: 3px solid transparent; }
+    .brow.bhead { color: var(--ink-dim); font-size: 13px; border-bottom-color: var(--line); }
+    .brow b { font-size: 15.5px; white-space: nowrap; } .brow .tag { color: var(--ink-dim); font-size: 12px; white-space: nowrap; } .brow .now { color: var(--accent); font-size: 12px; white-space: nowrap; }
+    .brow .hidden-name { color: var(--ink-dim); white-space: nowrap; }
+    .brow.me { border-left-color: var(--accent); background: rgba(216, 135, 58, 0.12); }
+    .brow.sleep, .brow.sleep b { color: var(--ink-dim); }
+    .brow .c-place, .brow .c-level { text-align: right; font-variant-numeric: tabular-nums; }
+    .brow .c-since, .brow .c-played, .brow .c-family { color: var(--ink-dim); font-size: 13.5px; } .brow .c-since, .brow .c-played { white-space: nowrap; }
+    .c-bosses { white-space: nowrap; } .boss { display: inline-block; width: 22px; text-align: center; font-size: 16px; } .boss.off { color: var(--ink-dim); opacity: 0.5; }
+    .swatch { display: inline-block; width: 0.8em; height: 0.8em; border-radius: 50%; margin-right: 6px; vertical-align: -1px; border: 1px solid rgba(255, 255, 255, 0.25); }
+    /* цвета — бока моделей окрасов (procedural-animals, species/fox/coat.js: flank; у крестовки и чернобурки — с тёмным низом) */
+    .coat-red { background: #c46a32; } .coat-urban { background: #96684a; }
+    .coat-cross { background: linear-gradient(#9c6a44 55%, #3a3430 55%); } .coat-silver { background: linear-gradient(#7a7876 45%, #1e1c1a 45%); }
+    .bsep, .bmore { padding: 8px 12px; color: var(--ink-dim); font-size: 13.5px; border-bottom: 1px solid var(--line); }
+    .board-pin { position: sticky; bottom: 0; background: var(--panel-solid); border-top: 2px solid var(--line); }
+    .board-note { color: var(--ink-dim); font-size: 14.5px; margin: 10px 0 0; text-align: left; }
+    .board-btns { display: flex; gap: 10px; justify-content: center; margin-top: 14px; flex-shrink: 0; }
+    /* узкий экран (планшет ≈1000×600 при плотности 2): столбцы уже, чтобы окно не шире экрана — иначе браузер уменьшает
+       всю страницу и низ окна уходит за край (З-1) */
+    @media (max-width: 1100px) { .brow { grid-template-columns: 34px minmax(130px, 1fr) 30px 132px 104px 106px 90px 82px; gap: 6px; } }
     .name-input { font: inherit; font-size: 20px; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.06); color: var(--ink); text-align: center; }
     .name-err { margin: 0; color: var(--bad); }
     .window .center, .window .center .btn { text-align: center; } /* экран имени — и из норы, как в главном меню */
@@ -207,7 +234,7 @@
     #credits .idea .names { font-family: var(--serif); font-size: 34px; line-height: 1.25; color: var(--ink); }
     @keyframes credits-in { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
   </style>
-  <script type="module" crossorigin src="/fox-forest/assets/game-hwKHJQMZ.js"></script>
+  <script type="module" crossorigin src="/fox-forest/assets/game-jgeMwUPS.js"></script>
   <link rel="modulepreload" crossorigin href="/fox-forest/assets/viper-DNOkNNWN.js">
 </head>
 <body>
