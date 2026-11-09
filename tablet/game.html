@@ -55,6 +55,8 @@
     #status .xp span { display: block; height: 100%; background: var(--accent); transform-origin: left; }
     #status .xpnum { font-size: 14px; color: var(--ink-dim); font-variant-numeric: tabular-nums; }
     #status .quest { border-top: 1px solid var(--line); padding-top: 8px; font-size: 16px; line-height: 1.3; }
+    #status .quest .qwhere { display: block; color: var(--ink-dim); font-size: 15px; margin-top: 2px; }
+    #status .quest .qwhere:empty { display: none; }
     #status .quest small { display: block; color: var(--ink-dim); font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 2px; }
     #prompt { position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); padding: 8px 16px; font-size: 17px; white-space: nowrap; pointer-events: none; }
     #hint { position: fixed; left: 50%; bottom: 40px; transform: translateX(-50%); padding: 8px 16px; font-size: 15px; color: var(--ink-dim); pointer-events: none; white-space: nowrap; }
@@ -165,6 +167,13 @@
     .quests li.current { color: var(--ink); font-weight: 700; }
     .quests li.sec { border-bottom: 0; padding: 14px 0 2px; color: var(--accent); font-size: 14px; letter-spacing: .06em; text-transform: uppercase; }
     .quests li i { color: var(--ink-dim); font-style: normal; font-weight: 400; }
+    /* подсказка задания с местом (ЗД-6): где, приметы, как; справа — «Показать путь» или «Стрелка ведёт сюда» */
+    .quests li.hint { padding: 0 0 12px; align-items: flex-end; font-size: 15px; color: var(--ink-dim); line-height: 1.4; }
+    .quests li.hint p { margin: 3px 0; }
+    .quests li:has(+ li.hint) { border-bottom: 0; padding-bottom: 2px; }
+    .quests li.hint b { color: var(--ink); font-weight: 700; }
+    .quests li.hint > div:last-child { flex: 0 0 auto; }
+    .quests li.hint .tracked { color: #ffd27a; font-weight: 700; white-space: nowrap; }
     .niche.have { border-style: solid; border-color: var(--accent); color: var(--ink); }
     .niche .bonus { color: var(--accent); font-size: 14px; }
     .keys { color: var(--ink-dim); font-size: 14px; margin-top: 16px; }
@@ -177,11 +186,12 @@
     #tutorial kbd { min-width: 44px; padding: 6px 12px; border-radius: 8px; border: 2px solid rgba(242, 236, 220, 0.7); border-bottom-width: 4px; background: rgba(242, 236, 220, 0.12); font: 700 20px var(--sans, system-ui); color: var(--ink); }
     #tutorial .t-keys span { color: var(--ink-dim); font-size: 18px; }
     #tutorial .t-hint { color: var(--ink-dim); font-size: 16px; }
-    #tutorial-mark { position: fixed; left: 0; top: 0; pointer-events: none; z-index: 11; }
-    #tutorial-mark .m-dot { width: 34px; height: 34px; border-radius: 50%; border: 3px solid #ffd27a; box-shadow: 0 0 12px rgba(255, 210, 122, 0.8); animation: mark-pulse 0.9s ease-in-out infinite alternate; }
-    #tutorial-mark .m-arrow { display: none; position: absolute; left: 50%; top: 50%; width: 0; height: 0; margin: -14px 0 0 -6px; border-top: 14px solid transparent; border-bottom: 14px solid transparent; border-left: 26px solid #ffd27a; transform-origin: 6px 14px; }
-    #tutorial-mark.edge .m-dot { width: 24px; height: 24px; }
-    #tutorial-mark.edge .m-arrow { display: block; }
+    /* метка цели (ui/mark.js): обучение — #tutorial-mark, место задания (ЗД-6) — #quest-mark */
+    .target-mark { position: fixed; left: 0; top: 0; pointer-events: none; z-index: 11; }
+    .target-mark .m-dot { width: 34px; height: 34px; border-radius: 50%; border: 3px solid #ffd27a; box-shadow: 0 0 12px rgba(255, 210, 122, 0.8); animation: mark-pulse 0.9s ease-in-out infinite alternate; }
+    .target-mark .m-arrow { display: none; position: absolute; left: 50%; top: 50%; width: 0; height: 0; margin: -14px 0 0 -6px; border-top: 14px solid transparent; border-bottom: 14px solid transparent; border-left: 26px solid #ffd27a; transform-origin: 6px 14px; }
+    .target-mark.edge .m-dot { width: 24px; height: 24px; }
+    .target-mark.edge .m-arrow { display: block; }
     @keyframes mark-pulse { from { transform: scale(0.85); } to { transform: scale(1.1); } }
     #touch .hint-glow { box-shadow: 0 0 0 4px #ffd27a, 0 0 22px 6px rgba(255, 210, 122, 0.7); animation: mark-pulse 0.9s ease-in-out infinite alternate; }
     #touch .t-stick-zone.hint-glow, #touch .t-look.hint-glow { box-shadow: inset 0 0 0 4px rgba(255, 210, 122, 0.8); animation: none; }
@@ -245,7 +255,7 @@
     #credits .idea .names { font-family: var(--serif); font-size: 34px; line-height: 1.25; color: var(--ink); }
     @keyframes credits-in { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
   </style>
-  <script type="module" crossorigin src="/fox-forest/tablet/assets/game-KjrR43Kf.js"></script>
+  <script type="module" crossorigin src="/fox-forest/tablet/assets/game-0k4Itk3U.js"></script>
   <link rel="modulepreload" crossorigin href="/fox-forest/tablet/assets/viper-_68xton3.js">
 </head>
 <body>
@@ -259,7 +269,7 @@
       <div class="row"><span class="lvl"></span><span class="time"></span></div>
       <div class="xp"><span></span></div>
       <div class="xpnum"></div>
-      <div class="quest"><small data-i18n="hud.quest">Задание</small><span class="qtext"></span></div>
+      <div class="quest"><small data-i18n="hud.quest">Задание</small><span class="qtext"></span><span class="qwhere"></span></div>
     </div>
     <div id="scales" class="card"></div>
   </div>
