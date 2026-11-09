@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Лиса в лесу</title>
-  <link rel="icon" href="data:," />
+  <link rel="icon" href="/fox-forest/tablet/favicon.svg" type="image/svg+xml" />
   <style>
     /* Сдержанный природный стиль: тёмная хвоя, кора, охра; шрифт с кириллицей — PT Sans / PT Serif
        (есть в macOS), иначе системный. Всё в CSS-пикселях: на ретине крупно и чётко само. */
@@ -90,6 +90,20 @@
     .btn:disabled { opacity: 0.45; cursor: default; }
     .btn.small { display: inline-block; width: auto; padding: 7px 14px; font-size: 16px; }
     .main .window { text-align: center; min-width: 380px; }
+    /* «Мои лисы» (Я-3): 7 карточек в две колонки — без прокрутки при 1280×720 */
+    .window.wide { max-width: 980px; width: min(980px, 94vw); }
+    .foxes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; text-align: left; margin-bottom: 12px; }
+    .fox { display: flex; justify-content: space-between; align-items: center; gap: 10px; border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; min-height: 72px; }
+    .fox.current { border-color: var(--accent); }
+    .fox.empty { justify-content: center; color: var(--ink-dim); border-style: dashed; }
+    .fox b { font-size: 17px; } .fox .tag { color: var(--ink-dim); font-size: 12px; } .fox .now { color: var(--accent); font-size: 12px; }
+    .fox .meta { color: var(--ink-dim); font-size: 13.5px; }
+    .fox-btns { display: flex; flex-direction: column; gap: 6px; } .fox-btns .btn.small { padding: 5px 12px; font-size: 14px; }
+    @media (max-width: 760px) { .foxes { grid-template-columns: 1fr; } }
+    .name-input { font: inherit; font-size: 20px; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.06); color: var(--ink); text-align: center; }
+    .name-err { margin: 0; color: var(--bad); }
+    .window .center, .window .center .btn { text-align: center; } /* экран имени — и из норы, как в главном меню */
+    .btn.small.link { background: none; border: 0; text-decoration: underline; color: var(--accent); padding: 0 4px; font-size: 15px; }
     .main .btn { text-align: center; }
     .tabs { display: flex; gap: 4px; margin: 0 0 16px; border-bottom: 1px solid var(--line); }
     .tab { padding: 9px 14px; border: 0; background: none; font-size: 17px; color: var(--ink-dim); cursor: pointer; border-bottom: 2px solid transparent; }
@@ -108,6 +122,14 @@
     .slider input { accent-color: var(--accent); }
     .seg { display: flex; gap: 6px; }
     .seg .btn { text-align: center; }
+    /* пауза (З-3): настройки в две колонки — окно целиком помещается при 1280×720 без прокрутки */
+    .settings { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 28px; }
+    .settings .slider { grid-template-columns: 120px 1fr 36px; }
+    @media (max-width: 760px) { .settings { grid-template-columns: 1fr; } }
+    /* остальные окна прокручиваются — полоса видна всегда (на macOS сама она скрыта, З-3) */
+    .window::-webkit-scrollbar { width: 10px; }
+    .window::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.04); border-radius: 10px; }
+    .window::-webkit-scrollbar-thumb { background: rgba(242, 236, 220, 0.35); border-radius: 10px; }
     .seg .btn.on { border-color: var(--accent); background: rgba(216, 135, 58, 0.18); }
     .quests { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
     .quests li { padding: 9px 0; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 16px; font-size: 17px; }
@@ -171,39 +193,43 @@
     .howto li { margin: 6px 0; }
     #credits { position: fixed; inset: 0; z-index: 30; background: rgba(8, 10, 8, 0.94); display: flex; justify-content: center; }
     #credits[hidden] { display: none; }
-    #credits .roll { width: min(640px, 100% - 32px); overflow-y: auto; padding: 12vh 0 10vh; text-align: center; color: var(--ink); animation: credits-in 1.2s ease-out; }
+    #credits .roll { width: 100%; box-sizing: border-box; overflow-y: auto; padding: 12vh max(16px, calc((100% - 640px) / 2)) 10vh; text-align: center; color: var(--ink); animation: credits-in 1.2s ease-out; }
     #credits h1 { font-size: 46px; margin: 0 0 12px; }
     #credits h2 { font-size: 26px; margin: 48px 0 8px; color: var(--accent); }
     #credits h3 { font-size: 15px; margin: 28px 0 8px; color: var(--ink-dim); letter-spacing: .08em; text-transform: uppercase; }
     #credits p { margin: 6px 0; font-size: 17px; display: flex; justify-content: space-between; gap: 16px; text-align: left; }
-    #credits p span { color: var(--ink-dim); }
+    #credits p span { color: var(--ink-dim); flex: 0 0 auto; max-width: 45%; text-wrap: balance; }
+    #credits p b { flex: 1 1 0; text-align: right; text-wrap: balance; }
     #credits p.lead { display: block; text-align: center; font-size: 19px; margin: 28px 0; }
-    #credits .btn { margin-top: 24px; }
+    #credits .btn { margin-top: 24px; text-align: center; }
+    #credits .idea { margin: 36px 0 8px; }
+    #credits .idea h3 { margin: 0 0 10px; }
+    #credits .idea .names { font-family: var(--serif); font-size: 34px; line-height: 1.25; color: var(--ink); }
     @keyframes credits-in { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
   </style>
-  <script type="module" crossorigin src="/fox-forest/tablet/assets/game-BbBwb580.js"></script>
+  <script type="module" crossorigin src="/fox-forest/tablet/assets/game-BCjq_uCP.js"></script>
   <link rel="modulepreload" crossorigin href="/fox-forest/tablet/assets/viper-_68xton3.js">
 </head>
 <body>
   <div id="loading">
-    <h1>Лиса в лесу</h1>
+    <h1 data-i18n="app.title">Лиса в лесу</h1>
     <div class="bar"></div>
-    <p id="loading-status">Загрузка…</p>
+    <p id="loading-status" data-i18n="load.start">Загрузка…</p>
   </div>
   <div id="hud" hidden>
     <div id="status" class="card">
-      <div class="row"><span class="lvl">Уровень 1</span><span class="time"></span></div>
+      <div class="row"><span class="lvl"></span><span class="time"></span></div>
       <div class="xp"><span></span></div>
       <div class="xpnum"></div>
-      <div class="quest"><small>Задание</small><span class="qtext"></span></div>
+      <div class="quest"><small data-i18n="hud.quest">Задание</small><span class="qtext"></span></div>
     </div>
     <div id="scales" class="card"></div>
   </div>
-  <div id="hint" class="card" hidden>Щёлкните по картинке, чтобы управлять камерой мышью · Esc — пауза</div>
+  <div id="hint" class="card" hidden data-i18n="hint.pointer">Щёлкните по картинке, чтобы управлять камерой мышью · Esc — пауза</div>
   <div id="prompt" class="card" hidden></div>
   <div id="messages"></div>
-  <div id="rotate">Поверните планшет горизонтально</div>
-  <div id="fade">Лиса без сил…</div>
+  <div id="rotate" data-i18n="hint.rotate">Поверните планшет горизонтально</div>
+  <div id="fade" data-i18n="fade.down">Лиса без сил…</div>
   <div id="screen" class="screen" hidden><div class="window" id="window"></div></div>
   <div id="fps" hidden>— FPS</div>
 </body>

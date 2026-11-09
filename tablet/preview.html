@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Лиса — просмотр модели</title>
+  <link rel="icon" href="data:," />
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #bfe0ee; font-family: system-ui, sans-serif; }
+    #ui { position: fixed; top: 12px; left: 12px; right: 12px; display: flex; flex-direction: column; gap: 6px; }
+    .row { display: flex; flex-wrap: wrap; gap: 6px; pointer-events: none; }
+    .row button { pointer-events: auto; }
+    #ui button { padding: 6px 12px; border: 0; border-radius: 6px; background: #fff; cursor: pointer; }
+    #ui button.on { background: #d8661e; color: #fff; }
+    body.shot #ui { display: none; }
+  </style>
+  <script type="module" crossorigin src="/fox-forest/tablet/assets/preview-BDTkgLuW.js"></script>
+  <link rel="modulepreload" crossorigin href="/fox-forest/tablet/assets/viper-_68xton3.js">
+</head>
+<body>
+  <div id="ui">
+    <div class="row" id="gaits">
+      <button data-name="idle" class="on">Стоять</button>
+      <button data-name="walk">Шаг</button>
+      <button data-name="trot">Рысь</button>
+      <button data-name="run">Галоп</button>
+    </div>
+    <div class="row" id="actions"></div>
+  </div>
+</body>
+</html>
